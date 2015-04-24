@@ -1,64 +1,86 @@
 body {
-  background: #FCFAF2;
+  background: #FFF0E3;
+  background-image: -o-linear-gradient(bottom, #FFFAF5 0%, #FFECE0 100%);
+  background-image: -moz-linear-gradient(bottom, #FFFAF5 0%, #FFECE0 100%);
+  background-image: -webkit-linear-gradient(bottom, #FFFAF5 0%, #FFECE0 100%);
+  background-image: -ms-linear-gradient(bottom, #FFFAF5 0%, #FFECE0 100%);
+  background-image: linear-gradient(to bottom, #FFFAF5 0%, #FFECE0 100%);
   margin: 0;
   padding: 0;
-  width: 625px;
-  height: 625px;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   position: fixed!important;
 }
 
-.boxShape {
-    	border : 0.1px solid #a1a1a1;
-   	 	padding : 5px 5px;
-   		width : 15px;
-   		height : 15px;
-   		border-radius: 50px;
-   		opacity: 1;
-    	text-align: center; 
-	}
-.boxGreen {
-		opacity: 1;
-		-moz-box-shadow: 0 0 7px 5px #a1fa1a;
-		-webkit-box-shadow: 0 0 7px 5px #a1fa1a;
-		box-shadow: 0px 0px 7px 5px #a1fa1a;
-	}
-	
-.checkerShapeX {
-    width : 17px;
-    height : 17px;
-    border-radius: 50px;
-    position: relative;
-    //background: blue;
-    background: -webkit-radial-gradient(blue, #0000ef, black); /* Safari 5.1 to 6.0 */
-    background: -o-radial-gradient(blue, #0000ef, black); /* For Opera 11.6 to 12.0 */
-    background: -moz-radial-gradient(blue, #0000ef, black); /* For Firefox 3.6 to 15 */
-    background: radial-gradient(blue, #0000ef, black); /* Standard syntax (must be last) */
-    border : 1px solid ;
-    z-index: 5;
-    opacity: 1;
-    margin-left: auto;
-    margin-right:auto;
-    margin-top:auto;
-    margin-bottom:auto;
+.checkerCell {
+  border: 1px solid #E0D8C1;
+  padding: 3px;
+  width: 3.5%;
+  height: 3.5%;
+  border-radius: 100%;
+  opacity: 1;
+  text-align: center;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.5), 0 2px 1px #fff;
+  background-color: #BDB5A0;
 }
-.checkerShapeO {
-    width : 17px;
-    height : 17px;
-    border-radius: 50px;
-    position: relative;
-    background: -webkit-radial-gradient(red, #df0000, black); /* Safari 5.1 to 6.0 */
-    background: -o-radial-gradient(red, #df0000, black); /* For Opera 11.6 to 12.0 */
-    background: -moz-radial-gradient(red, #df0000, black); /* For Firefox 3.6 to 15 */
-    background: radial-gradient(red, #df0000, black); /* Standard syntax (must be last) */
-    border : 1px solid ;
-    z-index: 5;
-    opacity: 1;
-    margin-left: auto;
-    margin-right:auto;
-    margin-top:auto;
-    margin-bottom:auto;
+
+.checkerCell.selected {
+  background-color: #9b59b6;
+  box-shadow: 0 0 12px #9b59b6 !important;
+  border-color: #9b59b6;
 }
+
+.checker {
+  width : 100%;
+  height : 100%;
+  border-radius: 50px;
+  position: relative;
+  z-index: 5;
+  opacity: 0.5;
+  margin: auto;
+  box-sizing: border-box;
+}
+
+.checkerCell.valid{
+  box-shadow: 0 0 20px #fff;
+}
+
+.valid .checker{
+  opacity: 1;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.checker_R {
+  background-color: #e74c3c;
+  background: -webkit-radial-gradient(35% 25%, circle, #FF877A 1px, #e74c3c 3%, #B03528 60%, #e74c3c 100%); 
+}
+
+.checker_G {
+  background-color: #2ecc71;
+  background: -webkit-radial-gradient(35% 25%, circle, #BDFFD9 1px, #63FFA5 3%, #2ecc71 60%, #63FFA5 100%); 
+}
+
+.checker_B {
+  background-color: #347BD9;
+  background: -webkit-radial-gradient(35% 25%, circle, #9CC7FF 1px, #61A5FF 3%, #347BD9 60%, #61A5FF 100%); 
+}
+
+.checker_Y {
+  background-color: #f1c40f;
+  background: -webkit-radial-gradient(35% 25%, circle, #FFEA96 1px, #FFDB4D 3%, #f1c40f 60%, #FFDB4D 100%); 
+}
+
+.checker_K {
+  background-color: #343D45;
+  background: -webkit-radial-gradient(35% 25%, circle, #8E9194 1px, #5A646E 3%, #343D45 60%, #5A646E 100%); 
+}
+
+.checker_W {
+  background-color: #E6E6E6;
+  background: -webkit-radial-gradient(35% 25%, circle, #FFFFFF 1px, #F0F0F0 3%, #E6E6E6 60%, #F0F0F0 100%); 
+}
+
 
 
 #board {

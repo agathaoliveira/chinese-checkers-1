@@ -1,10 +1,17 @@
-'use strict';
+angular.module('myApp').controller('Ctrl',
+    ['$scope', '$log', '$timeout', 'gameService', 'stateService', 'gameLogic', 'resizeGameAreaService',
+    function ($scope, $log, $timeout, gameService, stateService, gameLogic, resizeGameAreaService) {
 
+    'use strict';
 
-angular.module('myApp',['ngTouch','ngDraggable'])
-  .controller('Ctrl', function ($window, $scope, $log,  $timeout, $interval,
-       gameService,  gameLogic) {
-      	
+    resizeGameAreaService.setWidthToHeight(1);
+
+    $scope.selectedPosition = [];
+    var moveOri;
+    var move;
+    var isChain = false;
+    var chainValue = [];
+
     var moveAudio = new Audio('audio/move.wav');
     moveAudio.load();
     
@@ -29,18 +36,16 @@ angular.module('myApp',['ngTouch','ngDraggable'])
 		[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[15,5],[0,0]],
 		[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],
 		];
-		
 	$scope.newposition = 50;
     $scope.newpositionTop = 50;
     $scope.setPagePosition = function(index, parentIndex) {
-        $scope.newposition =  $scope.map[parentIndex][index][0] * 40.2 - 63 + 'px'
+        $scope.newposition =  $scope.map[parentIndex][index][0]  * 6.7 - 13 + '%'
         return $scope.newposition;
     }
     $scope.setPagePositionTop = function(parentIndex, index){
-        $scope.newpositionTop = $scope.map[parentIndex][index][1] * 35.6 -19 + 'px'
+        $scope.newpositionTop = $scope.map[parentIndex][index][1] * 5.7 - 4 + '%'
         return $scope.newpositionTop;
     }
-    
     
     function resetAll(){
     	$scope.ani_point = [];
@@ -57,86 +62,85 @@ angular.module('myApp',['ngTouch','ngDraggable'])
     	$scope.jr = false;
     	$scope.jdl = false;
     	$scope.jdr = false;
-    	
     }
 
+    function handleDrag(type, cx, cy) {
+    }
+    window.handleDragEvent = handleDrag;
+
     function updateUI(params) {
-      $scope.params = params;
-      $scope.board = params.stateAfterMove.board;
-      if ($scope.board === undefined) {
-        $scope.board = gameLogic.getInitialBoard();
-      }else{
-      	$timeout(function(){moveAudio.play();},100);
-      	//moveAudio.play();
-      }
-      $scope.isYourTurn = params.turnIndexAfterMove >= 0 && // game is ongoing
+        $scope.params = params;
+
+        if (isEmpty(params.stateAfterMove)) {
+            try{
+                gameLogic.setNumPlayers(params.playersInfo.length);
+                $scope.board = gameLogic.getInitialBoard();
+            }
+            catch(e) {
+                return location.reload();
+            }
+        }
+        else{
+        	$timeout(function(){moveAudio.play();},100);
+        }
+
+        $scope.validFromPositions = gameLogic.getValidFromPositions($scope.board, params.turnIndexAfterMove);
+        $scope.isYourTurn = params.turnIndexAfterMove >= 0 && // game is ongoing
         params.yourPlayerIndex === params.turnIndexAfterMove; // it's my turn
-      $scope.turnIndex = params.turnIndexAfterMove;
-      
-      if(params.yourPlayerIndex === -2 ){
-      	//do nothing when initial state holds
-      }else if(params.yourPlayerIndex === -1){
-      	//do nothing when end of game
-      }else if(!$scope.isYourTurn && params.playersInfo[params.yourPlayerIndex].playerId !== ''){
-      	//setAll(params.move);  // show opponent's movement
-      }
-      
-      if(isChain){
-      	makeGameMove(true);
-      	
-      }else if ($scope.isYourTurn
+        $scope.turnIndex = params.turnIndexAfterMove;
+
+        if(params.yourPlayerIndex === -2 ) {
+        	//do nothing when initial state holds
+        } else if(params.yourPlayerIndex === -1) {
+        	//do nothing when end of game
+        } else if(!$scope.isYourTurn && params.playersInfo[params.yourPlayerIndex].playerId !== ''){
+        	//setAll(params.move);  // show opponent's movement
+        }
+
+        if(isChain){
+        	makeGameMove(true);
+        	
+        } else if ($scope.isYourTurn
           && params.playersInfo[params.yourPlayerIndex].playerId === '') {
-          $timeout(function(){
+          $timeout(function() {
           	moveOri = gameLogic.createComputerMove($scope.board, $scope.turnIndex);
          	makeGameMove(true);
-          },300);	   
-      }
+          }, 300);	   
+        }
       
       
     }
     
     // Before getting any updateUI message, we show an empty board to a viewer (so you can't perform moves).
-    updateUI({stateAfterMove: {}, turnIndexAfterMove: 0, yourPlayerIndex: -2});
-    
-        
-    $scope.selectedPosition = [];
-    var moveOri;
-    var move;
-    var isChain = false;
-    var chainValue = [];
+   // updateUI({stateAfterMove: {}, turnIndexAfterMove: 0, yourPlayerIndex: -2});
     
     $scope.cellClicked = function(row, col) {
-    	$log.info(["Clicked on cell: ",row,col]);
+    	$log.info(["Clicked on cell: ",row,col,$scope.selectedPosition]);
     	if(!$scope.isYourTurn){
     		return;
     	}
-    	if($scope.selectedPosition.length === 0){
-    		if(isNotSelectable(row,col)){
-    			return;
-    		}
-    		$scope.selectedPosition[0] = [row, col];
-    		return;
-    	}else{
-    		if($scope.board[row][col]==($scope.turnIndex==0 ?'O':'X')){
-    			if(isNotSelectable(row,col)){
-    				return;
-    			}
-    			$scope.selectedPosition[0] = [row, col];
-    			return;
-    		}else{
-    			$scope.selectedPosition[1] = [row, col];
-    		}
-    	}
-    	try{
-    		moveOri = gameLogic.createMove($scope.selectedPosition[0][0],$scope.selectedPosition[0][1],$scope.selectedPosition[1][0],$scope.selectedPosition[1][1],$scope.turnIndex,$scope.board);
-    		$scope.isYourTurn = false;
-    		makeGameMove(true);
-    		$scope.selectedPosition = [];
-    	}catch(e){
-    	 	$log.info(["It is illegal to move position from:", $scope.oldrow, $scope.oldcol," to position:",row,col]);
-    	 	$scope.selectedPosition = [];
-    	 	return;
-    	}
+
+        if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
+            throw new Error("Throwing the error because URL has '?throwException'");
+        }
+
+        if( isSelectable(row, col) ) {
+            $scope.selectedPosition = [row, col];
+        }
+        else if($scope.selectedPosition.length !== 0) {
+        	try {
+                var from = $scope.selectedPosition;
+        		moveOri = gameLogic.createMove(from[0], from[1], row, col, $scope.turnIndex, $scope.board);
+
+                $scope.selectedPosition = [];
+        		$scope.isYourTurn = false;
+
+        		makeGameMove(true);
+        	} catch(e) {
+        	 	$log.info(["Cell is already full in position:", row, col, e]);
+        	 	return;
+        	}
+        }
     };
     
     function setAll(move){
@@ -197,8 +201,19 @@ angular.module('myApp',['ngTouch','ngDraggable'])
     	}
     		
     }
+
+    var isSelectable = $scope.isSelectable = function(row, col) {
+        for(var i = 0; i < $scope.validFromPositions.length; i++) {
+            var pos = $scope.validFromPositions[i];
+            if(row === pos.row && col === pos.col) {
+
+                return true;
+            }
+        }
+        return false;
+    };
     
-    function isNotSelectable(row, col){
+/*    function isNotSelectable(row, col){
     	var possibleMoves = [];
     	var i, j;
     	var tempMove;
@@ -217,10 +232,10 @@ angular.module('myApp',['ngTouch','ngDraggable'])
     	}else{
     		return false;
     	}
-    }
+    }*/
     
     
-    function checkDragDrop(row, col){
+/*    function checkDragDrop(row, col){
     	$scope.boolboard = angular.copy($scope.board);
     	var possibleMoves = [];
     	var i, j;
@@ -239,9 +254,9 @@ angular.module('myApp',['ngTouch','ngDraggable'])
     	for(i=0; i<possibleMoves.length; i++){
     		$scope.boolboard[possibleMoves[i][0]][possibleMoves[i][1]] = true;
     	}
-    }
+    }*/
     
-    $scope.onDropCallback = function( event, r, c ){
+/*    $scope.onDropCallback = function( event, r, c ){
     	var row = r;
     	var col = c;
     	$scope.cellClicked(row, col);	
@@ -261,63 +276,70 @@ angular.module('myApp',['ngTouch','ngDraggable'])
     		checkDragDrop(row, col);
     		return;
     	}	
-    }
+    }*/
     
     
     // pay attantion to WIN condition: endMatch
     function makeGameMove(isDnD){
-    	
-    		move = angular.copy(moveOri);
-    		isChain = angular.copy(moveOri[3].set.value);
-    	
-    		if(isChain && chainValue.length === 0){
-    			chainValue = angular.copy(moveOri[4].set.value);  // initial chainValue when first meet
-    		}
-    		if(isChain && chainValue.length > 2 && move[0].setTurn===undefined){  // end Match
-    			move[0] = {setTurn:{turnIndex: $scope.turnIndex}};
-    		}
-    		if(isChain && chainValue.length > 2 && move[0].setTurn!==undefined){  // normal
-    			move[0].setTurn.turnIndex = $scope.turnIndex;
-    		}	
-    		if(isChain){  // change the shape of move
-    			var row = move[2].set.value.row;
-    			var col = move[2].set.value.col;
-    			move[1].set.value[row][col] = 'a';
-    			move[1].set.value[chainValue[1][0]][chainValue[1][1]] = $scope.turnIndex===0? 'O' : 'X';
-    			move[1].set.value[chainValue[0][0]][chainValue[0][1]] = 'a';
-    			move[2].set.value.oldrow = chainValue[0][0];
-    			move[2].set.value.oldcol = chainValue[0][1];
-    			move[2].set.value.row = chainValue[1][0];
-    			move[2].set.value.col = chainValue[1][1];
-    		}
-    		if(chainValue.length > 2){
-    			chainValue.reverse();
-    			chainValue.pop();
-    			chainValue.reverse();	
-    		}else{
-    		moveOri[3].set.value = false;
-    		move[0] = moveOri[0];
-    		isChain = false;
-    		chainValue = [];
-    		}
-    		setAll(move);	
-    		$timeout(function(){
-    			console.log("timeout happens! ");
-    			gameService.makeMove(move);},500);
-    		
-    		
+		move = angular.copy(moveOri);
+		isChain = angular.copy(moveOri[3].set.value);
+	
+		if(isChain && chainValue.length === 0){
+			chainValue = angular.copy(moveOri[4].set.value);  // initial chainValue when first meet
+		}
+		if(isChain && chainValue.length > 2 && move[0].setTurn===undefined){  // end Match
+			move[0] = {setTurn:{turnIndex: $scope.turnIndex}};
+		}
+		if(isChain && chainValue.length > 2 && move[0].setTurn!==undefined){  // normal
+			move[0].setTurn.turnIndex = $scope.turnIndex;
+		}	
+		if(isChain){  // change the shape of move
+			var row = move[2].set.value.row;
+			var col = move[2].set.value.col;
+			move[1].set.value[row][col] = 'a';
+			move[1].set.value[chainValue[1][0]][chainValue[1][1]] = $scope.turnIndex===0? 'O' : 'X';
+			move[1].set.value[chainValue[0][0]][chainValue[0][1]] = 'a';
+			move[2].set.value.oldrow = chainValue[0][0];
+			move[2].set.value.oldcol = chainValue[0][1];
+			move[2].set.value.row = chainValue[1][0];
+			move[2].set.value.col = chainValue[1][1];
+		}
+		if(chainValue.length > 2){
+			chainValue.reverse();
+			chainValue.pop();
+			chainValue.reverse();	
+		}else{
+		moveOri[3].set.value = false;
+		move[0] = moveOri[0];
+		isChain = false;
+		chainValue = [];
+		}
+		setAll(move);	
+		$timeout(function(){
+			console.log("timeout happens! ");
+			gameService.makeMove(move);},500);
     }
-    
-    gameService.setGame({
-      gameDeveloperEmail: "yoav.zibin@gmail.com",
-      minNumberOfPlayers: 2,
-      maxNumberOfPlayers: 2,
-      //exampleGame: gameLogic.getExampleGame,
-      //riddles: gameLogic.getRiddles(),
-      isMoveOk: gameLogic.isMoveOk,
-      updateUI: updateUI
-    });
-    
-   // scaleBodyService.scaleBody({width: 625, height: 625});
+
+    var hasOwnProperty = Object.prototype.hasOwnProperty;
+    function isEmpty(obj) {
+        if (obj == null) return true;
+        if (obj.length > 0)    return false;
+        if (obj.length === 0)  return true;
+        for (var key in obj) {
+            if (hasOwnProperty.call(obj, key)) return false;
+        }
+        return true;
+    }
+
+    function initGame() {
+        gameService.setGame({
+            gameDeveloperEmail: "jugalm9@gmail.com",
+            minNumberOfPlayers: 2,
+            maxNumberOfPlayers: 6,
+            isMoveOk: gameLogic.isMoveOk,
+            updateUI: updateUI
+        });
+    }
    
-  });
+    initGame();
+}]);
