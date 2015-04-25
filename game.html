@@ -18,7 +18,6 @@
     <script src="src/lib/dragAndDropListeners.js"></script>
     <script src="src/gameLogic.js"></script>
     <script src="src/game.js"></script>
-    <!-- <script src="src/aiService.js"></script> -->
     <!-- /build -->
 
     <!-- build:js http://yoav-zibin.github.io/emulator/dist/gameServices.min.js -->
@@ -40,20 +39,22 @@
 <body ng-controller="Ctrl">
 
     <div id="gameArea">
-        <div ng-repeat="row in board track by $index">
-            <div ng-repeat="cell in row track by $index" 
-                 ng-click="cellClicked(board.indexOf(row),$index)" 
-                 ng-style="{'position':'absolute','top':setPagePositionTop(board.indexOf(row), $index), 'left':setPagePosition($index, board.indexOf(row)) }" 
-                 ng-class="{checkerCell: cell != ' ', selected: selectedPosition[0]==board.indexOf(row) && selectedPosition[1]==$index, valid: isSelectable(board.indexOf(row), $index)}" >  
-                <div ng-class="{ checker: true,
-                     checker_R: cell == 'R',
-                     checker_G: cell == 'G',
-                     checker_B: cell == 'B',
-                     checker_Y: cell == 'Y',
-                     checker_K: cell == 'K',
-                     checker_W: cell == 'W'}" >
-                </div> 
+        <div id="board">
+            <div ng-repeat="row in board track by $index">
+                <div ng-repeat="cell in row track by $index" 
+                     ng-click="cellClicked($parent.$index,$index)" 
+                     ng-style="{
+                        position:'absolute', 
+                        top: setPagePositionTop($parent.$index, $index), 
+                        left: setPagePosition($index, $parent.$index) }" 
+                     ng-class="{
+                        checkerCell: cell != ' ', 
+                        selected: selectedPosition[0] == $parent.$index && selectedPosition[1] == $index, 
+                        valid: isSelectable($parent.$index, $index) }" >  
+                    <div ng-class="getCheckerClass(board.indexOf(row), $index)" >
+                    </div> 
 
+                </div>
             </div>
         </div>
     </div>

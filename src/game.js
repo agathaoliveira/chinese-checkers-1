@@ -5,12 +5,8 @@ angular.module('myApp').controller('Ctrl',
     'use strict';
 
     resizeGameAreaService.setWidthToHeight(1);
-
     $scope.selectedPosition = [];
-    var moveOri;
-    var move;
-    var isChain = false;
-    var chainValue = [];
+    var boardEl = document.getElementById('board');
 
     var moveAudio = new Audio('audio/move.wav');
     moveAudio.load();
@@ -46,23 +42,6 @@ angular.module('myApp').controller('Ctrl',
         $scope.newpositionTop = $scope.map[parentIndex][index][1] * 5.7 - 4 + '%'
         return $scope.newpositionTop;
     }
-    
-    function resetAll(){
-    	$scope.ani_point = [];
-    	$scope.ul = false;
-    	$scope.ur = false;
-    	$scope.l = false;
-    	$scope.r = false;
-    	$scope.dl = false;
-    	$scope.dr = false;
-    	
-    	$scope.jul = false;
-    	$scope.jur = false;
-    	$scope.jl = false;
-    	$scope.jr = false;
-    	$scope.jdl = false;
-    	$scope.jdr = false;
-    }
 
     function handleDrag(type, cx, cy) {
     }
@@ -70,49 +49,62 @@ angular.module('myApp').controller('Ctrl',
 
     function updateUI(params) {
         $scope.params = params;
+        $scope.board = params.stateAfterMove.board;
 
-        if (isEmpty(params.stateAfterMove)) {
-            try{
-                gameLogic.setNumPlayers(params.playersInfo.length);
+        var numPlayers = params.playersInfo.length;
+        if( isEmpty(params.stateAfterMove) ) {
+            try {
+                gameLogic.setNumPlayers(numPlayers);
                 $scope.board = gameLogic.getInitialBoard();
+
+                boardEl.className = '';
+                if(params.playMode === "playWhite") {
+                    switch(numPlayers){
+                        case 4:
+                            boardEl.className = 'rot_60';
+                    }
+                }
+                else if(params.playMode === "playBlack") {
+                    switch(numPlayers){
+                        case 2:
+                            boardEl.className = 'rot_180';
+                            break;
+                        case 3:
+                        case 4:
+                            boardEl.className = 'rot_120';
+                            break;
+                        case 6:
+                            boardEl.className = 'rot_60';
+                    }
+                }
             }
             catch(e) {
                 return location.reload();
             }
         }
-        else{
+        else {
         	$timeout(function(){moveAudio.play();},100);
         }
 
         $scope.validFromPositions = gameLogic.getValidFromPositions($scope.board, params.turnIndexAfterMove);
+
         $scope.isYourTurn = params.turnIndexAfterMove >= 0 && // game is ongoing
         params.yourPlayerIndex === params.turnIndexAfterMove; // it's my turn
         $scope.turnIndex = params.turnIndexAfterMove;
 
-        if(params.yourPlayerIndex === -2 ) {
-        	//do nothing when initial state holds
-        } else if(params.yourPlayerIndex === -1) {
-        	//do nothing when end of game
-        } else if(!$scope.isYourTurn && params.playersInfo[params.yourPlayerIndex].playerId !== ''){
-        	//setAll(params.move);  // show opponent's movement
-        }
-
-        if(isChain){
-        	makeGameMove(true);
-        	
-        } else if ($scope.isYourTurn
-          && params.playersInfo[params.yourPlayerIndex].playerId === '') {
-          $timeout(function() {
-          	moveOri = gameLogic.createComputerMove($scope.board, $scope.turnIndex);
-         	makeGameMove(true);
-          }, 300);	   
-        }
-      
-      
+        if($scope.isYourTurn &&
+           params.playersInfo[params.yourPlayerIndex].playerId === '') {
+            $scope.isYourTurn = false; // to make sure the UI won't send another move.
+            // Waiting 0.5 seconds to let the move animation finish; if we call aiService
+            // then the animation is paused until the javascript finishes.
+            $timeout(sendComputerMove, 500);
+        }      
     }
-    
-    // Before getting any updateUI message, we show an empty board to a viewer (so you can't perform moves).
-   // updateUI({stateAfterMove: {}, turnIndexAfterMove: 0, yourPlayerIndex: -2});
+
+    function sendComputerMove() {
+        var items = gameLogic.getPossibleMoves($scope.board, $scope.turnIndex);
+        gameService.makeMove(items[Math.floor(Math.random()*items.length)]);
+    }    
     
     $scope.cellClicked = function(row, col) {
     	$log.info(["Clicked on cell: ",row,col,$scope.selectedPosition]);
@@ -120,7 +112,7 @@ angular.module('myApp').controller('Ctrl',
     		return;
     	}
 
-        if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
+        if (window.location.search === '?throwException') {
             throw new Error("Throwing the error because URL has '?throwException'");
         }
 
@@ -130,195 +122,35 @@ angular.module('myApp').controller('Ctrl',
         else if($scope.selectedPosition.length !== 0) {
         	try {
                 var from = $scope.selectedPosition;
-        		moveOri = gameLogic.createMove(from[0], from[1], row, col, $scope.turnIndex, $scope.board);
-
+        		var move = gameLogic.createMove(from[0], from[1], row, col, $scope.turnIndex, $scope.board);
                 $scope.selectedPosition = [];
         		$scope.isYourTurn = false;
 
-        		makeGameMove(true);
+        		gameService.makeMove(move);
         	} catch(e) {
-        	 	$log.info(["Cell is already full in position:", row, col, e]);
+        	 	$log.info(["Cell is already full in position:", row, col, e.stack]);
         	 	return;
         	}
         }
     };
-    
-    function setAll(move){
-    	resetAll();
-    	var row = move[2].set.value.row;
-    	var col = move[2].set.value.col;
-    	var oldrow = move[2].set.value.oldrow;
-    	var oldcol = move[2].set.value.oldcol;
-    	$scope.ani_point[0] = oldrow;
-    	$scope.ani_point[1] = oldcol;
-    	if(row==oldrow && col == oldcol+1){
-    		// up left
-    		$scope.ul = true;
-    	}
-    	else if(row==oldrow+1 && col == oldcol+1){
-    		// up right
-    		$scope.ur = true;
-    	}
-    	else if(row==oldrow-1 && col == oldcol){
-    		// left
-    		$scope.l = true;
-    	}
-    	else if(row==oldrow+1 && col == oldcol){
-    		// right
-    		$scope.r = true;
-    	}
-    	else if(row==oldrow-1 && col == oldcol-1){
-    		// down left
-    		$scope.dl = true;
-    	}
-    	else if(row==oldrow && col == oldcol-1){
-    		// down right
-    		$scope.dr = true;
-    	}
-    	else if(row==oldrow && col == oldcol+2){
-    		// jump up left
-    		$scope.jul = true;
-    	}
-    	else if(row==oldrow+2 && col == oldcol+2){
-    		// jump up right
-    		$scope.jur = true;
-    	}
-    	else if(row==oldrow-2 && col == oldcol){
-    		// jump left
-    		$scope.jl = true;
-    	}
-    	else if(row==oldrow+2 && col == oldcol){
-    		// jump right
-    		$scope.jr = true;
-    	}
-    	else if(row==oldrow-2 && col == oldcol-2){
-    		// jump down left
-    		$scope.jdl = true;
-    	}
-    	else if(row==oldrow && col == oldcol-2){
-    		// jump down right
-    		$scope.jdr = true;
-    	}
-    		
-    }
 
+    $scope.getCheckerClass = function(row, col) {
+        return 'checker checker_' + getCellType(row, col);
+    };
+
+    function getCellType(row, col) {
+        return  $scope.board[row][col];
+    }
+    
     var isSelectable = $scope.isSelectable = function(row, col) {
         for(var i = 0; i < $scope.validFromPositions.length; i++) {
             var pos = $scope.validFromPositions[i];
             if(row === pos.row && col === pos.col) {
-
                 return true;
             }
         }
         return false;
     };
-    
-/*    function isNotSelectable(row, col){
-    	var possibleMoves = [];
-    	var i, j;
-    	var tempMove;
-    	for(i=1; i<19; i++){
-    		for(j=1; j<$scope.board[i].length; j++){
-    			try{
-    				tempMove = gameLogic.createMove(row, col, i, j, $scope.turnIndex, $scope.board);
-    				possibleMoves.push([i,j]);
-    			}catch(e){
-    				// do something here?
-    			}
-    		}
-    	}
-    	if(possibleMoves.length===0){
-    		return true;
-    	}else{
-    		return false;
-    	}
-    }*/
-    
-    
-/*    function checkDragDrop(row, col){
-    	$scope.boolboard = angular.copy($scope.board);
-    	var possibleMoves = [];
-    	var i, j;
-    	var tempMove;
-    	for(i=0; i<19; i++){
-    		for(j=0; j<$scope.boolboard[i].length; j++){
-    			$scope.boolboard[i][j] = false;
-    			try{
-    				tempMove = gameLogic.createMove(row, col, i, j, $scope.turnIndex, $scope.board);
-    				possibleMoves.push([i,j]);
-    			}catch(e){
-    				// do something here?
-    			}
-    		}
-    	}
-    	for(i=0; i<possibleMoves.length; i++){
-    		$scope.boolboard[possibleMoves[i][0]][possibleMoves[i][1]] = true;
-    	}
-    }*/
-    
-/*    $scope.onDropCallback = function( event, r, c ){
-    	var row = r;
-    	var col = c;
-    	$scope.cellClicked(row, col);	
-    }
-    
-    $scope.onStartCallback = function( event, r, c ){
-    	//console.log(row,col);
-    	var row = r;
-    	var col = c;
-    	$log.info(["drag on cell: ",row, col]);
-    	if(!$scope.isYourTurn){
-    		return;
-    	}
-    	$scope.selectedPosition =[];
-    	if($scope.selectedPosition.length === 0){
-    		$scope.selectedPosition[0] = [row, col];
-    		checkDragDrop(row, col);
-    		return;
-    	}	
-    }*/
-    
-    
-    // pay attantion to WIN condition: endMatch
-    function makeGameMove(isDnD){
-		move = angular.copy(moveOri);
-		isChain = angular.copy(moveOri[3].set.value);
-	
-		if(isChain && chainValue.length === 0){
-			chainValue = angular.copy(moveOri[4].set.value);  // initial chainValue when first meet
-		}
-		if(isChain && chainValue.length > 2 && move[0].setTurn===undefined){  // end Match
-			move[0] = {setTurn:{turnIndex: $scope.turnIndex}};
-		}
-		if(isChain && chainValue.length > 2 && move[0].setTurn!==undefined){  // normal
-			move[0].setTurn.turnIndex = $scope.turnIndex;
-		}	
-		if(isChain){  // change the shape of move
-			var row = move[2].set.value.row;
-			var col = move[2].set.value.col;
-			move[1].set.value[row][col] = 'a';
-			move[1].set.value[chainValue[1][0]][chainValue[1][1]] = $scope.turnIndex===0? 'O' : 'X';
-			move[1].set.value[chainValue[0][0]][chainValue[0][1]] = 'a';
-			move[2].set.value.oldrow = chainValue[0][0];
-			move[2].set.value.oldcol = chainValue[0][1];
-			move[2].set.value.row = chainValue[1][0];
-			move[2].set.value.col = chainValue[1][1];
-		}
-		if(chainValue.length > 2){
-			chainValue.reverse();
-			chainValue.pop();
-			chainValue.reverse();	
-		}else{
-		moveOri[3].set.value = false;
-		move[0] = moveOri[0];
-		isChain = false;
-		chainValue = [];
-		}
-		setAll(move);	
-		$timeout(function(){
-			console.log("timeout happens! ");
-			gameService.makeMove(move);},500);
-    }
 
     var hasOwnProperty = Object.prototype.hasOwnProperty;
     function isEmpty(obj) {
@@ -331,15 +163,13 @@ angular.module('myApp').controller('Ctrl',
         return true;
     }
 
-    function initGame() {
-        gameService.setGame({
-            gameDeveloperEmail: "jugalm9@gmail.com",
-            minNumberOfPlayers: 2,
-            maxNumberOfPlayers: 6,
-            isMoveOk: gameLogic.isMoveOk,
-            updateUI: updateUI
-        });
-    }
-   
-    initGame();
+
+    gameService.setGame({
+        gameDeveloperEmail: "jugalm9@gmail.com",
+        minNumberOfPlayers: 2,
+        maxNumberOfPlayers: 6,
+        isMoveOk: gameLogic.isMoveOk,
+        updateUI: updateUI
+    });
+
 }]);
