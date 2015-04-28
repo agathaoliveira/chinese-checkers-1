@@ -74,8 +74,6 @@ body {
   opacity: 0.5;
   margin: auto;
   box-sizing: border-box;
-  -webkit-transition: all 0.1s;
-  transition: all 0.1s;
 }
 
 .checker.drag {

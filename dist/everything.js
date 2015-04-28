@@ -1,53 +1,4 @@
-// You need to define a single method:
-// function handleDragEvent(type, clientX, clientY) {...}
-// type is either: "touchstart", "touchmove", "touchend", "touchcancel", "touchleave"
-(function () {
-  'use strict';
-
-  var isMouseDown = false;
-
-  function touchHandler(event) {
-    var touch = event.changedTouches[0];
-    handleEvent(event, event.type, touch.clientX, touch.clientY);
-  }
-
-  function mouseDownHandler(event) {
-    isMouseDown = true;
-    handleEvent(event, "touchstart", event.clientX, event.clientY);
-  }
-
-  function mouseMoveHandler(event) {
-    if (isMouseDown) {
-      handleEvent(event, "touchmove", event.clientX, event.clientY);
-    }
-  }
-
-  function mouseUpHandler(event) {
-    isMouseDown = false;
-    handleEvent(event, "touchend", event.clientX, event.clientY);
-  }
-
-  function handleEvent(event, type, clientX, clientY) {
-    event.preventDefault(); // Prevents generating mouse events for touch.
-    handleDragEvent(type, clientX, clientY, event);
-  }
-
-  window.addEventListener("load", function () {
-    var gameArea = document.getElementById("gameArea");
-    if (!gameArea) {
-      throw new Error("You must have <div id='gameArea'>...</div>");
-    }
-    gameArea.addEventListener("touchstart", touchHandler, true);
-    gameArea.addEventListener("touchmove", touchHandler, true);
-    gameArea.addEventListener("touchend", touchHandler, true);
-    gameArea.addEventListener("touchcancel", touchHandler, true);
-    gameArea.addEventListener("touchleave", touchHandler, true);
-    gameArea.addEventListener("mousedown", mouseDownHandler, true);
-    gameArea.addEventListener("mousemove", mouseMoveHandler, true);
-    gameArea.addEventListener("mouseup", mouseUpHandler, true);
-  }, false );
-  
-})();;angular.module('myApp', []).factory('gameLogic', function() {
+angular.module('myApp', []).factory('gameLogic', function() {
 
     'use strict';
 
@@ -424,7 +375,7 @@
 		var state = initialState;
 		var turnIndex = initialTurnIndex;
 		for(var i=0; i<arrayOfRowColSets.length; i++){
-			var rowColSets = arrayOfRowColSets[i];
+			var rowColSets = arrayOfRowColSets[i];
 			var move = createMove(rowColSets.oldrow,rowColSets.oldcol,rowColSets.row, rowColSets.col,turnIndex,state.board);
 			var stateAfterMove = {board : move[1].set.value, delta : move[2].set.value};
 			exampleMove.push({
@@ -570,9 +521,6 @@
     resizeGameAreaService.setWidthToHeight(1);
     $scope.selectedPosition = [];
     var boardEl = document.getElementById('board');
-
-    var moveAudio = new Audio('audio/move.wav');
-    moveAudio.load();
     
     $scope.map = [
 		[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],
@@ -622,7 +570,6 @@
     };
 
     var dragEl = null,
-        dragStartPos = null,
         childEl, startEl,
         pos, startPos,
         row, col;
@@ -633,40 +580,34 @@
         var el = angular.element(document.elementFromPoint(cx, cy));
         if( !dragEl && el.hasClass('checker') ) {
             childEl = el;
-            row = el.data('row');
-            col = el.data('col');
+            row = +el.attr('data-row');
+            col = +el.attr('data-col');
             pos = childEl[0].getBoundingClientRect();
         }
         else if( el.hasClass('checkerCell') ) {
             childEl = el.children();
-            row = el.data('row');
-            col = el.data('col');
+            row = +el.attr('data-row');
+            col = +el.attr('data-col');
             pos = childEl[0].getBoundingClientRect();
-        }
-        else {
-            // return;
         }
 
         if( type === "touchstart" && !dragEl && childEl ) {
             if(selectCell(row, col)) {
-                $scope.$apply(function(){
-                    dragStartPos = [row, col];
-                    startPos = pos;
-                    startEl = childEl;
+                startPos = pos;
+                startEl = childEl;
+                startEl.parent().addClass('selected');
 
-                    dragEl = angular.element('<div class="' + childEl.attr('class') + ' drag"></div>');
+                dragEl = angular.element('<div class="' + childEl.attr('class') + ' drag"></div>');
 
-                    dragEl.css('width', childEl[0].clientWidth + 'px');
-                    dragEl.css('height', childEl[0].clientHeight + 'px');
-                    dragEl.css('top', startPos.top + 'px');
-                    dragEl.css('left', startPos.left + 'px');
-                    dragEl.css('opacity', 1);
-                    dragEl.css('position', 'fixed');
-                    gameArea.append(dragEl);
+                dragEl.css('width', childEl[0].clientWidth + 'px');
+                dragEl.css('height', childEl[0].clientHeight + 'px');
+                dragEl.css('top', startPos.top + 'px');
+                dragEl.css('left', startPos.left + 'px');
+                dragEl.css('opacity', 1);
+                dragEl.css('position', 'fixed');
+                gameArea.append(dragEl);
 
-                    startEl.css('display', 'none');
-
-                });     
+                startEl.css('display', 'none');   
             }
         }
 
@@ -675,7 +616,7 @@
         }
 
         if (type === "touchend") {
-            dragDone(dragStartPos, [row, col]);
+            dragDone([row, col]);
         }
         else {
             var top = pos.top || startPos.top;
@@ -690,16 +631,16 @@
              * Drag ended.
              */
             dragEl.remove();
+            startEl.parent().removeClass('selected');
             startEl.css('display', 'block');
             dragEl = null;
-            dragStartPos = null;
+            childEl = null;
         }
     }
     window.handleDragEvent = handleDrag;
 
-    function dragDone(from, to) {
+    function dragDone(to) {
         selectCell(to[0], to[1]);
-        $scope.$apply();
     }
 
     function updateUI(params) {
@@ -737,9 +678,7 @@
                 return location.reload();
             }
         }
-        else {
-        	$timeout(function(){moveAudio.play();},100);
-        }
+
 
         $scope.validFromPositions = gameLogic.getValidFromPositions($scope.board, params.turnIndexAfterMove);
 
@@ -786,6 +725,9 @@
         	 	$log.info(["Cell is already full in position:", row, col, e.stack]);
         	 	return false;
         	}
+        }
+        else {
+            return false;
         }
         return true;
     }

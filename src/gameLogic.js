@@ -375,7 +375,7 @@ angular.module('myApp', []).factory('gameLogic', function() {
 		var state = initialState;
 		var turnIndex = initialTurnIndex;
 		for(var i=0; i<arrayOfRowColSets.length; i++){
-			var rowColSets = arrayOfRowColSets[i];
+			var rowColSets = arrayOfRowColSets[i];
 			var move = createMove(rowColSets.oldrow,rowColSets.oldcol,rowColSets.row, rowColSets.col,turnIndex,state.board);
 			var stateAfterMove = {board : move[1].set.value, delta : move[2].set.value};
 			exampleMove.push({

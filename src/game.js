@@ -7,9 +7,6 @@ angular.module('myApp').controller('Ctrl',
     resizeGameAreaService.setWidthToHeight(1);
     $scope.selectedPosition = [];
     var boardEl = document.getElementById('board');
-
-    var moveAudio = new Audio('audio/move.wav');
-    moveAudio.load();
     
     $scope.map = [
 		[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],
@@ -59,7 +56,6 @@ angular.module('myApp').controller('Ctrl',
     };
 
     var dragEl = null,
-        dragStartPos = null,
         childEl, startEl,
         pos, startPos,
         row, col;
@@ -70,40 +66,34 @@ angular.module('myApp').controller('Ctrl',
         var el = angular.element(document.elementFromPoint(cx, cy));
         if( !dragEl && el.hasClass('checker') ) {
             childEl = el;
-            row = el.data('row');
-            col = el.data('col');
+            row = +el.attr('data-row');
+            col = +el.attr('data-col');
             pos = childEl[0].getBoundingClientRect();
         }
         else if( el.hasClass('checkerCell') ) {
             childEl = el.children();
-            row = el.data('row');
-            col = el.data('col');
+            row = +el.attr('data-row');
+            col = +el.attr('data-col');
             pos = childEl[0].getBoundingClientRect();
-        }
-        else {
-            // return;
         }
 
         if( type === "touchstart" && !dragEl && childEl ) {
             if(selectCell(row, col)) {
-                $scope.$apply(function(){
-                    dragStartPos = [row, col];
-                    startPos = pos;
-                    startEl = childEl;
+                startPos = pos;
+                startEl = childEl;
+                startEl.parent().addClass('selected');
 
-                    dragEl = angular.element('<div class="' + childEl.attr('class') + ' drag"></div>');
+                dragEl = angular.element('<div class="' + childEl.attr('class') + ' drag"></div>');
 
-                    dragEl.css('width', childEl[0].clientWidth + 'px');
-                    dragEl.css('height', childEl[0].clientHeight + 'px');
-                    dragEl.css('top', startPos.top + 'px');
-                    dragEl.css('left', startPos.left + 'px');
-                    dragEl.css('opacity', 1);
-                    dragEl.css('position', 'fixed');
-                    gameArea.append(dragEl);
+                dragEl.css('width', childEl[0].clientWidth + 'px');
+                dragEl.css('height', childEl[0].clientHeight + 'px');
+                dragEl.css('top', startPos.top + 'px');
+                dragEl.css('left', startPos.left + 'px');
+                dragEl.css('opacity', 1);
+                dragEl.css('position', 'fixed');
+                gameArea.append(dragEl);
 
-                    startEl.css('display', 'none');
-
-                });     
+                startEl.css('display', 'none');   
             }
         }
 
@@ -112,7 +102,7 @@ angular.module('myApp').controller('Ctrl',
         }
 
         if (type === "touchend") {
-            dragDone(dragStartPos, [row, col]);
+            dragDone([row, col]);
         }
         else {
             var top = pos.top || startPos.top;
@@ -127,16 +117,16 @@ angular.module('myApp').controller('Ctrl',
              * Drag ended.
              */
             dragEl.remove();
+            startEl.parent().removeClass('selected');
             startEl.css('display', 'block');
             dragEl = null;
-            dragStartPos = null;
+            childEl = null;
         }
     }
     window.handleDragEvent = handleDrag;
 
-    function dragDone(from, to) {
+    function dragDone(to) {
         selectCell(to[0], to[1]);
-        $scope.$apply();
     }
 
     function updateUI(params) {
@@ -174,9 +164,7 @@ angular.module('myApp').controller('Ctrl',
                 return location.reload();
             }
         }
-        else {
-        	$timeout(function(){moveAudio.play();},100);
-        }
+
 
         $scope.validFromPositions = gameLogic.getValidFromPositions($scope.board, params.turnIndexAfterMove);
 
@@ -223,6 +211,9 @@ angular.module('myApp').controller('Ctrl',
         	 	$log.info(["Cell is already full in position:", row, col, e.stack]);
         	 	return false;
         	}
+        }
+        else {
+            return false;
         }
         return true;
     }
