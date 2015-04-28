@@ -1,6 +1,6 @@
 angular.module('myApp').controller('Ctrl',
-    ['$scope', '$log', '$timeout', 'gameService', 'stateService', 'gameLogic', 'resizeGameAreaService',
-    function ($scope, $log, $timeout, gameService, stateService, gameLogic, resizeGameAreaService) {
+    ['$scope', '$document', '$log', '$timeout', 'gameService', 'stateService', 'gameLogic', 'resizeGameAreaService',
+    function ($scope, $document, $log, $timeout, gameService, stateService, gameLogic, resizeGameAreaService) {
 
     'use strict';
 
@@ -35,13 +35,13 @@ angular.module('myApp').controller('Ctrl',
 	$scope.newposition = 50;
     $scope.newpositionTop = 50;
     $scope.setPagePosition = function(index, parentIndex) {
-        $scope.newposition =  $scope.map[parentIndex][index][0]  * 6.7 - 13 + '%'
+        $scope.newposition =  $scope.map[parentIndex][index][0]  * 6.7 - 13 + '%';
         return $scope.newposition;
-    }
+    };
     $scope.setPagePositionTop = function(parentIndex, index){
-        $scope.newpositionTop = $scope.map[parentIndex][index][1] * 5.7 - 4 + '%'
+        $scope.newpositionTop = $scope.map[parentIndex][index][1] * 5.7 - 4 + '%';
         return $scope.newpositionTop;
-    }
+    };
 
 
     /**
@@ -60,14 +60,14 @@ angular.module('myApp').controller('Ctrl',
 
     var dragEl = null,
         dragStartPos = null,
-        zIndex = 324,
-        childEl,
-        pos,
+        childEl, startEl,
+        pos, startPos,
         row, col;
 
-    function handleDrag(type, cx, cy, e) {
-        var el = angular.element(e.target);
-            
+    var gameArea = angular.element(document.getElementById("gameArea"));
+
+    function handleDrag(type, cx, cy) {
+        var el = angular.element(document.elementFromPoint(cx, cy));
         if( !dragEl && el.hasClass('checker') ) {
             childEl = el;
             row = el.data('row');
@@ -75,9 +75,9 @@ angular.module('myApp').controller('Ctrl',
             pos = childEl[0].getBoundingClientRect();
         }
         else if( el.hasClass('checkerCell') ) {
+            childEl = el.children();
             row = el.data('row');
             col = el.data('col');
-            childEl = el.children();
             pos = childEl[0].getBoundingClientRect();
         }
         else {
@@ -88,11 +88,21 @@ angular.module('myApp').controller('Ctrl',
             if(selectCell(row, col)) {
                 $scope.$apply(function(){
                     dragStartPos = [row, col];
-                    dragEl = childEl;
-                    dragEl.css('z-index', zIndex++);
-                    dragEl.css('width', dragEl.css('width'));
-                    dragEl.css('height', dragEl.css('height'));
+                    startPos = pos;
+                    startEl = childEl;
+
+                    dragEl = angular.element('<div class="' + childEl.attr('class') + ' drag"></div>');
+
+                    dragEl.css('width', childEl[0].clientWidth + 'px');
+                    dragEl.css('height', childEl[0].clientHeight + 'px');
+                    dragEl.css('top', startPos.top + 'px');
+                    dragEl.css('left', startPos.left + 'px');
+                    dragEl.css('opacity', 1);
                     dragEl.css('position', 'fixed');
+                    gameArea.append(dragEl);
+
+                    startEl.css('display', 'none');
+
                 });     
             }
         }
@@ -105,20 +115,19 @@ angular.module('myApp').controller('Ctrl',
             dragDone(dragStartPos, [row, col]);
         }
         else {
-            console.log(row, col, Math.round(pos.top), Math.round(pos.left));
-            dragEl.css('top', pos.top + 'px');
-            dragEl.css('left', pos.left + 'px');
+            var top = pos.top || startPos.top;
+            var left = pos.left || startPos.left;
+
+            dragEl.css('top', top + 'px');
+            dragEl.css('left', left + 'px');
         }
 
         if (type === "touchend" || type === "touchcancel" || type === "touchleave") {
             /**
              * Drag ended.
              */
-            dragEl.css('top', '');
-            dragEl.css('left', '');
-            dragEl.css('position', 'relative');
-            dragEl.css('width', '100%');
-            dragEl.css('height', '100%');
+            dragEl.remove();
+            startEl.css('display', 'block');
             dragEl = null;
             dragStartPos = null;
         }
@@ -216,7 +225,7 @@ angular.module('myApp').controller('Ctrl',
         	}
         }
         return true;
-    };
+    }
 
     $scope.getCheckerClass = function(row, col) {
         var type = getCellType(row, col);
@@ -242,7 +251,7 @@ angular.module('myApp').controller('Ctrl',
 
     var hasOwnProperty = Object.prototype.hasOwnProperty;
     function isEmpty(obj) {
-        if (obj == null) return true;
+        if (obj === null) return true;
         if (obj.length > 0)    return false;
         if (obj.length === 0)  return true;
         for (var key in obj) {
