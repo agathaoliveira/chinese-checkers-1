@@ -10,7 +10,7 @@ http://yoav-zibin.github.io/emulator/angular-translate/angular-translate.2.6.1.m
 languages/en.js
 http://yoav-zibin.github.io/emulator/main.css
 dist/everything.min.js
-styles/main.css
+game.css
 
 NETWORK:
 languages/de.js
