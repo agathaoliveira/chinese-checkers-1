@@ -43,9 +43,92 @@ angular.module('myApp').controller('Ctrl',
         return $scope.newpositionTop;
     }
 
-    function handleDrag(type, cx, cy) {
+
+    /**
+     * Drag-and-drop
+     * ---
+     *
+     */
+    
+    var cells = [],
+        checkers = [];
+
+    $scope.init = function() {
+        cells = document.getElementsByClassName("checkerCell");
+        checkers = document.getElementsByClassName("checker");
+    };
+
+    var dragEl = null,
+        dragStartPos = null,
+        zIndex = 324,
+        childEl,
+        pos,
+        row, col;
+
+    function handleDrag(type, cx, cy, e) {
+        var el = angular.element(e.target);
+            
+        if( !dragEl && el.hasClass('checker') ) {
+            childEl = el;
+            row = el.data('row');
+            col = el.data('col');
+            pos = childEl[0].getBoundingClientRect();
+        }
+        else if( el.hasClass('checkerCell') ) {
+            row = el.data('row');
+            col = el.data('col');
+            childEl = el.children();
+            pos = childEl[0].getBoundingClientRect();
+        }
+        else {
+            // return;
+        }
+
+        if( type === "touchstart" && !dragEl && childEl ) {
+            if(selectCell(row, col)) {
+                $scope.$apply(function(){
+                    dragStartPos = [row, col];
+                    dragEl = childEl;
+                    dragEl.css('z-index', zIndex++);
+                    dragEl.css('width', dragEl.css('width'));
+                    dragEl.css('height', dragEl.css('height'));
+                    dragEl.css('position', 'fixed');
+                });     
+            }
+        }
+
+        if (!dragEl) {
+            return;
+        }
+
+        if (type === "touchend") {
+            dragDone(dragStartPos, [row, col]);
+        }
+        else {
+            console.log(row, col, Math.round(pos.top), Math.round(pos.left));
+            dragEl.css('top', pos.top + 'px');
+            dragEl.css('left', pos.left + 'px');
+        }
+
+        if (type === "touchend" || type === "touchcancel" || type === "touchleave") {
+            /**
+             * Drag ended.
+             */
+            dragEl.css('top', '');
+            dragEl.css('left', '');
+            dragEl.css('position', 'relative');
+            dragEl.css('width', '100%');
+            dragEl.css('height', '100%');
+            dragEl = null;
+            dragStartPos = null;
+        }
     }
     window.handleDragEvent = handleDrag;
+
+    function dragDone(from, to) {
+        selectCell(to[0], to[1]);
+        $scope.$apply();
+    }
 
     function updateUI(params) {
         $scope.params = params;
@@ -106,10 +189,10 @@ angular.module('myApp').controller('Ctrl',
         gameService.makeMove(items[Math.floor(Math.random()*items.length)]);
     }    
     
-    $scope.cellClicked = function(row, col) {
+    function selectCell(row, col) {
     	$log.info(["Clicked on cell: ",row,col,$scope.selectedPosition]);
     	if(!$scope.isYourTurn){
-    		return;
+    		return false;
     	}
 
         if (window.location.search === '?throwException') {
@@ -129,13 +212,18 @@ angular.module('myApp').controller('Ctrl',
         		gameService.makeMove(move);
         	} catch(e) {
         	 	$log.info(["Cell is already full in position:", row, col, e.stack]);
-        	 	return;
+        	 	return false;
         	}
         }
+        return true;
     };
 
     $scope.getCheckerClass = function(row, col) {
-        return 'checker checker_' + getCellType(row, col);
+        var type = getCellType(row, col);
+        if( type !== ' ' ) {
+            return 'checker checker_' + getCellType(row, col);    
+        }
+        return '';
     };
 
     function getCellType(row, col) {
