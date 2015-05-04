@@ -1,6 +1,6 @@
 angular.module('myApp').controller('Ctrl',
-    ['$scope', '$document', '$log', '$timeout', 'gameService', 'stateService', 'gameLogic', 'resizeGameAreaService',
-    function ($scope, $document, $log, $timeout, gameService, stateService, gameLogic, resizeGameAreaService) {
+    ['$scope', '$document', '$log', '$timeout', 'gameService', 'stateService', 'gameLogic', 'resizeGameAreaService', 'dragAndDropService',
+    function ($scope, $document, $log, $timeout, gameService, stateService, gameLogic, resizeGameAreaService, dragAndDropService) {
 
     'use strict';
 
@@ -123,7 +123,7 @@ angular.module('myApp').controller('Ctrl',
             childEl = null;
         }
     }
-    window.handleDragEvent = handleDrag;
+    dragAndDropService.addDragListener("gameArea", handleDrag);
 
     function dragDone(to) {
         selectCell(to[0], to[1]);

@@ -66,16 +66,14 @@ module.exports = function(grunt) {
           basePath: '.',
           cache: [
             'http://ajax.googleapis.com/ajax/libs/angularjs/1.3.8/angular.min.js',
-            'http://yoav-zibin.github.io/emulator/dist/gameServices.min.js',
-            'http://yoav-zibin.github.io/emulator/angular-translate/angular-translate.2.6.1.min.js',
-            'http://yoav-zibin.github.io/emulator/dist/dragAndDropListeners.min.js',
-            'languages/en.js',
+            'http://ajax.googleapis.com/ajax/libs/angularjs/1.3.8/angular-touch.min.js',
+            'http://yoav-zibin.github.io/emulator/dist/turnBasedServices.2.min.js',
             'http://yoav-zibin.github.io/emulator/main.css',
             'dist/everything.min.js',
             'game.css',
           ],
           network: [
-            'languages/de.js',
+            'languages/en.js',
             'dist/everything.min.js.map',
             'dist/everything.js'
           ],
