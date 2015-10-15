@@ -1,13 +1,13 @@
 angular.module('myApp').controller('Ctrl',
-    ['$scope', '$document', '$log', '$timeout', 'gameService', 'stateService', 'gameLogic', 'resizeGameAreaService', 'dragAndDropService',
-    function ($scope, $document, $log, $timeout, gameService, stateService, gameLogic, resizeGameAreaService, dragAndDropService) {
+    ['$scope', '$document', '$log', '$timeout', 'gameLogic',
+    function ($scope, $document, $log, $timeout, gameLogic) {
 
     'use strict';
 
     resizeGameAreaService.setWidthToHeight(1);
     $scope.selectedPosition = [];
     var boardEl = document.getElementById('board');
-    
+
     $scope.map = [
 		[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],
 		[[0,0],[0,0],[0,0],[0,0],[0,0],[3,13],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],
@@ -46,7 +46,7 @@ angular.module('myApp').controller('Ctrl',
      * ---
      *
      */
-    
+
     var cells = [],
         checkers = [];
 
@@ -93,7 +93,7 @@ angular.module('myApp').controller('Ctrl',
                 dragEl.css('position', 'fixed');
                 gameArea.append(dragEl);
 
-                startEl.css('display', 'none');   
+                startEl.css('display', 'none');
             }
         }
 
@@ -178,14 +178,14 @@ angular.module('myApp').controller('Ctrl',
             // Waiting 0.5 seconds to let the move animation finish; if we call aiService
             // then the animation is paused until the javascript finishes.
             $timeout(sendComputerMove, 500);
-        }      
+        }
     }
 
     function sendComputerMove() {
         var items = gameLogic.getPossibleMoves($scope.board, $scope.turnIndex);
         gameService.makeMove(items[Math.floor(Math.random()*items.length)]);
-    }    
-    
+    }
+
     function selectCell(row, col) {
     	$log.info(["Clicked on cell: ",row,col,$scope.selectedPosition]);
     	if(!$scope.isYourTurn){
@@ -221,7 +221,7 @@ angular.module('myApp').controller('Ctrl',
     $scope.getCheckerClass = function(row, col) {
         var type = getCellType(row, col);
         if( type !== ' ' ) {
-            return 'checker checker_' + getCellType(row, col);    
+            return 'checker checker_' + getCellType(row, col);
         }
         return '';
     };
@@ -229,7 +229,7 @@ angular.module('myApp').controller('Ctrl',
     function getCellType(row, col) {
         return  $scope.board[row][col];
     }
-    
+
     var isSelectable = $scope.isSelectable = function(row, col) {
         for(var i = 0; i < $scope.validFromPositions.length; i++) {
             var pos = $scope.validFromPositions[i];

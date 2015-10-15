@@ -1,4 +1,4 @@
-angular.module('myApp', []).factory('gameLogic', function() {
+angular.module('myApp', ['gameServices']).factory('gameLogic', function() {
 
     'use strict';
 
@@ -9,18 +9,18 @@ angular.module('myApp', []).factory('gameLogic', function() {
      * @type {Object}
      */
     var corners = {
-    	vert: [ 
-    		[[5,1],[5,2],[6,2],[5,3],[6,3],[7,3],[5,4],[6,4],[7,4],[8,4]], 
-    		[[13,17],[12,16],[13,16],[11,15],[12,15],[13,15],[10,14],[11,14],[12,14],[13,14]] 
+    	vert: [
+    		[[5,1],[5,2],[6,2],[5,3],[6,3],[7,3],[5,4],[6,4],[7,4],[8,4]],
+    		[[13,17],[12,16],[13,16],[11,15],[12,15],[13,15],[10,14],[11,14],[12,14],[13,14]]
     	],
     	left: [
     		[[1,5],[2,5],[2,6],[3,5],[3,6],[3,7],[4,5],[4,6],[4,7],[4,8]],
-    		[[5,10],[5,11],[5,12],[5,13],[6,11],[6,12],[6,13],[7,12],[7,13],[8,13]] 
+    		[[5,10],[5,11],[5,12],[5,13],[6,11],[6,12],[6,13],[7,12],[7,13],[8,13]]
     	],
 
     	right: [
     		[[10,5],[11,5],[11,6],[12,5],[12,6],[12,7],[13,5],[13,6],[13,7],[13,8]],
-    		[[14,10],[14,11],[14,12],[14,13],[15,11],[15,12],[15,13],[16,12],[16,13],[17,13]] 
+    		[[14,10],[14,11],[14,12],[14,13],[15,11],[15,12],[15,13],[16,12],[16,13],[17,13]]
     	]
     };
 
@@ -30,7 +30,7 @@ angular.module('myApp', []).factory('gameLogic', function() {
     * For the given number of players, returns a mapping of the checker color
     * and the starting(house) corner it occupies in a clockwise order.
     * @param  {Number} numPlayers number of players in game.
-    * @return {Array} corner map       
+    * @return {Array} corner map
     */
   	function getPlayerMap(numPlayers) {
   		var players = [];
@@ -72,11 +72,11 @@ angular.module('myApp', []).factory('gameLogic', function() {
 			default:
 				throw new Error('Illegal number of players: ' + nPlayers);
     	}
-    	return players;	
+    	return players;
   	}
 
     function setNumPlayers(numPlayers) {
-    	nPlayers = numPlayers; 
+    	nPlayers = numPlayers;
     }
 
 	function getInitialBoard() {
@@ -166,7 +166,7 @@ angular.module('myApp', []).factory('gameLogic', function() {
   	}
 
   	function getCheckerByTurn(turnIndex) {
-  		return getPlayerMap(nPlayers)[turnIndex].p; 
+  		return getPlayerMap(nPlayers)[turnIndex].p;
   	}
 
 	function getWinner(board) {
@@ -210,8 +210,8 @@ angular.module('myApp', []).factory('gameLogic', function() {
 
 
 	function isOneStepMove(oldrow, oldcol, row, col){
-		if( Math.abs(oldrow - row) + Math.abs(oldcol - col) === 1 || 
-			(row === oldrow+1 && col === oldcol+1) || 
+		if( Math.abs(oldrow - row) + Math.abs(oldcol - col) === 1 ||
+			(row === oldrow+1 && col === oldcol+1) ||
 			(row === oldrow-1 && col === oldcol-1)) {
 			return true;
 		}
@@ -222,37 +222,37 @@ angular.module('myApp', []).factory('gameLogic', function() {
 	function getValidJumps(row, col, board) {
 		var jumpPositions = [];
 
-		if( board[row] && board[row][col+1] !== ' ' && 
-			board[row][col+1] !== 'a' && 
+		if( board[row] && board[row][col+1] !== ' ' &&
+			board[row][col+1] !== 'a' &&
 			board[row][col+2] === 'a' ) {
 			jumpPositions.push( [row, col + 2] );
 		}
 
-		if( board[row+1] && board[row+1][col+1] !== ' ' && 
-			board[row+1][col+1] !== 'a' && 
+		if( board[row+1] && board[row+1][col+1] !== ' ' &&
+			board[row+1][col+1] !== 'a' &&
 			board[row+2][col+2] === 'a' ) {
 			jumpPositions.push( [row + 2, col + 2] );
 		}
 
-		if( board[row+1] && board[row+1][col] !== ' ' && 
-			board[row+1][col] !== 'a' && 
+		if( board[row+1] && board[row+1][col] !== ' ' &&
+			board[row+1][col] !== 'a' &&
 			board[row+2][col] === 'a' ) {
 			jumpPositions.push( [row + 2, col] );
 		}
 
-		if( board[row] && board[row][col-1] !== ' ' && 
-			board[row][col-1] !== 'a' && 
+		if( board[row] && board[row][col-1] !== ' ' &&
+			board[row][col-1] !== 'a' &&
 			board[row][col-2] === 'a' ) {
 			jumpPositions.push( [row, col - 2] );
 		}
 
-		if( board[row-1] && board[row-1][col-1] !== ' ' && 
+		if( board[row-1] && board[row-1][col-1] !== ' ' &&
 			board[row-1][col-1] !== 'a' &&
 			board[row-2][col-2] === 'a' ) {
 			jumpPositions.push( [row - 2, col - 2] );
 		}
 
-		if( board[row-1] && 	board[row-1][col] !== ' ' && 
+		if( board[row-1] && 	board[row-1][col] !== ' ' &&
 			board[row-1][col] !== 'a' &&
 			board[row-2][col] === 'a' ) {
 			jumpPositions.push( [row - 2, col] );
@@ -280,7 +280,7 @@ angular.module('myApp', []).factory('gameLogic', function() {
 			else if( !isValidPosition(pos[0], pos[1], board) ) {
 				return false;
 			}
-			
+
 			hops.push(pos);
 			var jumps = getValidJumps(pos[0], pos[1], board),
 				valid = false;
@@ -316,19 +316,19 @@ angular.module('myApp', []).factory('gameLogic', function() {
 			          	possibleMoves.push(createMove(pos.row, pos.col, j, k, turnIndex, board));
 			        } catch (e) {
 			          	// The cell in that position was full.
-			        } 				
+			        }
 	  			}
 	  		}
         }
         return possibleMoves;
     }
 
-	function createMove(oldrow, oldcol, row, col, turnIndexBeforeMove, board) { 
-		
+	function createMove(oldrow, oldcol, row, col, turnIndexBeforeMove, board) {
+
 		if( board === undefined ) {
 			board = getInitialBoard();
 		}
-		
+
 	 	if( !isValidPosition(row, col, board) ) {
 	  		throw new Error("One can not make a move outside of the board!");
 	  	}
@@ -350,7 +350,7 @@ angular.module('myApp', []).factory('gameLogic', function() {
 		else {
 			throw new Error("The original checker is not the expected one!");
 		}
-		
+
 		var winner = getWinner(boardAfterMove),
 			firstOperation = {};
 
@@ -389,7 +389,7 @@ angular.module('myApp', []).factory('gameLogic', function() {
 			state = stateAfterMove;
 			turnIndex = move[0].setTurn.turnIndex;
 		}
-		return exampleMove;	
+		return exampleMove;
 	}
 
 	function getExampleGame(){
@@ -475,15 +475,15 @@ angular.module('myApp', []).factory('gameLogic', function() {
 	function isMoveOk(params){
 		try{
 			var move = params.move;
-			var turnIndexBeforeMove = params.turnIndexBeforeMove; 
-	    	var stateBeforeMove = params.stateBeforeMove;    	
+			var turnIndexBeforeMove = params.turnIndexBeforeMove;
+	    	var stateBeforeMove = params.stateBeforeMove;
 	    	var deltaValue = move[2].set.value;
 	    	var oldrow = deltaValue.oldrow;
 	      	var oldcol = deltaValue.oldcol;
 	      	var row = deltaValue.row;
 	      	var col = deltaValue.col;
 	      	var boardBeforeMove = stateBeforeMove.board;
-	      	
+
 			var expectedMove = createMove(oldrow, oldcol, row, col, turnIndexBeforeMove, boardBeforeMove);
 			if( !angular.equals(move, expectedMove) ){
 				return false;
@@ -493,7 +493,7 @@ angular.module('myApp', []).factory('gameLogic', function() {
 		}
 		return true;
 	}
-  
+
     return {
     	setNumPlayers: setNumPlayers,
         getInitialBoard: getInitialBoard,
@@ -505,23 +505,16 @@ angular.module('myApp', []).factory('gameLogic', function() {
 		getValidFromPositions: getValidFromPositions
     };
 });
-
-
-
-
-
-
-
 ;angular.module('myApp').controller('Ctrl',
-    ['$scope', '$document', '$log', '$timeout', 'gameService', 'stateService', 'gameLogic', 'resizeGameAreaService', 'dragAndDropService',
-    function ($scope, $document, $log, $timeout, gameService, stateService, gameLogic, resizeGameAreaService, dragAndDropService) {
+    ['$scope', '$document', '$log', '$timeout', 'gameLogic',
+    function ($scope, $document, $log, $timeout, gameLogic) {
 
     'use strict';
 
     resizeGameAreaService.setWidthToHeight(1);
     $scope.selectedPosition = [];
     var boardEl = document.getElementById('board');
-    
+
     $scope.map = [
 		[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],
 		[[0,0],[0,0],[0,0],[0,0],[0,0],[3,13],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],
@@ -560,7 +553,7 @@ angular.module('myApp', []).factory('gameLogic', function() {
      * ---
      *
      */
-    
+
     var cells = [],
         checkers = [];
 
@@ -607,7 +600,7 @@ angular.module('myApp', []).factory('gameLogic', function() {
                 dragEl.css('position', 'fixed');
                 gameArea.append(dragEl);
 
-                startEl.css('display', 'none');   
+                startEl.css('display', 'none');
             }
         }
 
@@ -692,14 +685,14 @@ angular.module('myApp', []).factory('gameLogic', function() {
             // Waiting 0.5 seconds to let the move animation finish; if we call aiService
             // then the animation is paused until the javascript finishes.
             $timeout(sendComputerMove, 500);
-        }      
+        }
     }
 
     function sendComputerMove() {
         var items = gameLogic.getPossibleMoves($scope.board, $scope.turnIndex);
         gameService.makeMove(items[Math.floor(Math.random()*items.length)]);
-    }    
-    
+    }
+
     function selectCell(row, col) {
     	$log.info(["Clicked on cell: ",row,col,$scope.selectedPosition]);
     	if(!$scope.isYourTurn){
@@ -735,7 +728,7 @@ angular.module('myApp', []).factory('gameLogic', function() {
     $scope.getCheckerClass = function(row, col) {
         var type = getCellType(row, col);
         if( type !== ' ' ) {
-            return 'checker checker_' + getCellType(row, col);    
+            return 'checker checker_' + getCellType(row, col);
         }
         return '';
     };
@@ -743,7 +736,7 @@ angular.module('myApp', []).factory('gameLogic', function() {
     function getCellType(row, col) {
         return  $scope.board[row][col];
     }
-    
+
     var isSelectable = $scope.isSelectable = function(row, col) {
         for(var i = 0; i < $scope.validFromPositions.length; i++) {
             var pos = $scope.validFromPositions[i];

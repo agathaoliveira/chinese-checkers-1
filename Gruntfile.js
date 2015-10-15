@@ -5,35 +5,6 @@ module.exports = function(grunt) {
   // Project configuration.
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
-    jshint: {
-      options: {
-        eqeqeq: true,
-        eqnull: true,
-        browser: true,
-        strict: true,
-        undef: true,
-        unused: true,
-        forin: true,
-        freeze: true,
-        latedef: true,
-        noarg: true,
-        nocomma: true,
-        nonbsp: true,
-        nonew: true,
-        notypeof: true,
-        jasmine: true,
-        jquery: true,
-        globals: {
-          module: false, require: false, // for Gruntfile.js
-          exports: false, // for protractor.conf.js
-          inject: false, // testing angular
-          angular: false,
-          console: false,
-          browser: false, element: false, by: false, // Protractor
-        },
-      },
-      all: ['Gruntfile.js', 'src/*.js', 'languages/*.js']
-    },
     concat: {
       options: {
         separator: ';',
@@ -67,7 +38,7 @@ module.exports = function(grunt) {
           cache: [
             'http://ajax.googleapis.com/ajax/libs/angularjs/1.3.8/angular.min.js',
             'http://ajax.googleapis.com/ajax/libs/angularjs/1.3.8/angular-touch.min.js',
-            'http://yoav-zibin.github.io/emulator/dist/turnBasedServices.2.min.js',
+            'http://yoav-zibin.github.io/emulator/dist/turnBasedServices.3.min.js',
             'http://yoav-zibin.github.io/emulator/main.css',
             'dist/everything.min.js',
             'game.css',
@@ -88,7 +59,7 @@ module.exports = function(grunt) {
   require('load-grunt-tasks')(grunt);
 
   // Default task(s).
-  grunt.registerTask('default', ['jshint',
+  grunt.registerTask('default', [
       'concat', 'uglify',
       'processhtml', 'manifest']);
 

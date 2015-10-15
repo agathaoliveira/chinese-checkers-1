@@ -21,12 +21,8 @@
     <script crossorigin="anonymous" src="src/game.js"></script>
     <!-- /build -->
 
-    <script>
-    window.angularTranslationLanguages = ['en'];
-    </script>
-
-    <!-- build:js http://yoav-zibin.github.io/emulator/dist/turnBasedServices.2.min.js -->
-    <script crossorigin="anonymous" src="http://yoav-zibin.github.io/emulator/dist/turnBasedServices.2.js"></script>
+    <!-- build:js http://yoav-zibin.github.io/emulator/dist/turnBasedServices.3.min.js -->
+    <script crossorigin="anonymous" src="http://yoav-zibin.github.io/emulator/dist/turnBasedServices.3.js"></script>
     <!-- /build -->
 
     <link rel="stylesheet" type="text/css" href="http://yoav-zibin.github.io/emulator/main.css">
@@ -39,22 +35,22 @@
             <div ng-repeat="row in board track by $index">
                 <div ng-repeat="cell in row track by $index"
                      ng-style="{
-                        position:'absolute', 
-                        top: setPagePositionTop($parent.$index, $index), 
+                        position:'absolute',
+                        top: setPagePositionTop($parent.$index, $index),
                         left: setPagePosition($index, $parent.$index) }"
                      ng-class="{
                         checkerCell: cell != ' ',
-                        valid: isSelectable($parent.$index, $index) }" 
-                     data-row="{{$parent.$index}}" data-col="{{$index}}">  
-                    <div ng-class="getCheckerClass(board.indexOf(row), $index)" 
+                        valid: isSelectable($parent.$index, $index) }"
+                     data-row="{{$parent.$index}}" data-col="{{$index}}">
+                    <div ng-class="getCheckerClass(board.indexOf(row), $index)"
                          id="{{'checker_' + $parent.$index + 'x' + $index}}"
                          data-row="{{$parent.$index}}" data-col="{{$index}}" >
-                    </div> 
+                    </div>
 
                 </div>
             </div>
         </div>
     </div>
-  
+
 </body>
 </html>
